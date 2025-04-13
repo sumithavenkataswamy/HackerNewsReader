@@ -47,7 +47,8 @@ jobs:
       # Step 7: Generate code coverage report
       - name: Generate Coverage Report
         run: |
-          reportgenerator -reports:**/TestResults/*.coverage -targetdir:coverage -reporttypes:Html
+          reportgenerator -reports:**/TestResults/**/coverage.cobertura.xml -targetdir:coverage -reporttypes:Html
+
 
       # Step 8: Upload coverage report
       - name: Upload Coverage Report

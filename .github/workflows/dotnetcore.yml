@@ -51,9 +51,9 @@ jobs:
             -targetdir:coverage \
             -reporttypes:Html;MarkdownSummaryGithub
 
-      # Step 8: Display Markdown coverage summary in GitHub Actions
-      - name: Show Coverage Summary in Logs
-        run: cat coverage/SummaryGithub.md
+    # Step 8: Show Markdown Summary in GitHub UI
+      - name: Publish Markdown Coverage Summary
+        run: cat coverage/Summary.md >> $GITHUB_STEP_SUMMARY
 
       # Step 9: Upload coverage report
       - name: Upload Coverage Report

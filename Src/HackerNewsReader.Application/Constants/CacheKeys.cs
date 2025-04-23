@@ -2,6 +2,6 @@
 {
     public static class CacheKeys
     {
-        public const string StoryCacheKey = "CachedStories";
+        public const string StoryCacheKey = "Top200Stories";
     }
 }

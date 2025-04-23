@@ -1,4 +1,3 @@
-using HackerNewsReader.Application.Constants;
 using HackerNewsReader.Application.Interfaces;
 using HackerNewsReader.Application.Services;
 using HackerNewsReader.Domain.Entities;
@@ -51,7 +50,7 @@ namespace HackerNewsReader.Application.Tests
 
             _readerServiceMock.Setup(s => s.GetNewStoryIdsAsync()).ReturnsAsync(storyIds);
             _readerServiceMock.Setup(s => s.GetStoryByIdAsync(1)).ReturnsAsync(story);
-            var cacheKey = "CachedStories_1_1";
+            var cacheKey = "Top200Stories";
             // Act
             var result = await _storyService.GetStoriesAsync(1, 1);
 

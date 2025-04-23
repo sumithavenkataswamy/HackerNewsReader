@@ -1,8 +1,8 @@
-﻿using HackerNewsReader.Application.Interfaces;
+﻿using HackerNewsReader.Application.Constants;
+using HackerNewsReader.Application.Interfaces;
 using HackerNewsReader.Domain.Entities;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using HackerNewsReader.Application.Constants;
 using System.Collections.Concurrent;
 
 namespace HackerNewsReader.Application.Services
@@ -25,10 +25,11 @@ namespace HackerNewsReader.Application.Services
 
         public async Task<PagedResult<Story>> GetStoriesAsync(int page, int pageSize)
         {
-            var stories = await GetCachedStoriesAsync(page, pageSize);
+            var stories = await GetCachedStoriesAsync();
+            var pagedStories = stories.Skip((page - 1) * pageSize).Take(pageSize).ToList();
             return new PagedResult<Story>
             {
-                Items = stories,
+                Items = pagedStories,
                 TotalCount = stories.Count
             };
         }
@@ -41,40 +42,6 @@ namespace HackerNewsReader.Application.Services
                 .ToList();
         }
 
-        private async Task<List<Story>> GetCachedStoriesAsync(int page, int pageSize)
-        {
-            var cacheKey = $"{CacheKeys.StoryCacheKey}_{page}_{pageSize}";
-            if (_cache.TryGetValue(cacheKey, out List<Story> cachedStories))
-            {
-                return cachedStories;
-            }
-
-            var storyIds = await _readerService.GetNewStoryIdsAsync();
-            var pagedIds = storyIds.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-            var stories = new ConcurrentBag<Story>();
-
-            await Parallel.ForEachAsync(pagedIds, new ParallelOptions { MaxDegreeOfParallelism = 5 }, async (id, cancellationToken) =>
-            {
-                try
-                {
-                    var story = await _readerService.GetStoryByIdAsync(id);
-                    if (story != null)
-                    {
-                        stories.Add(story);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error fetching story with ID {StoryId}", id);
-                }
-            });
-
-            var resultList = stories.ToList();
-            _cache.Set(cacheKey, resultList, TimeSpan.FromMinutes(10));
-            return resultList;
-        }
-
-
         private async Task<List<Story>> GetCachedStoriesAsync()
         {
             if (_cache.TryGetValue(CacheKeys.StoryCacheKey, out List<Story> cachedStories))
@@ -83,9 +50,10 @@ namespace HackerNewsReader.Application.Services
             }
 
             var storyIds = await _readerService.GetNewStoryIdsAsync();
+            var topStoryIds = storyIds.Take(200).ToList();
             var stories = new ConcurrentBag<Story>();
 
-            await Parallel.ForEachAsync(storyIds, new ParallelOptions { MaxDegreeOfParallelism = 5 }, async (id, cancellationToken) =>
+            await Parallel.ForEachAsync(topStoryIds, new ParallelOptions { MaxDegreeOfParallelism = 5 }, async (id, cancellationToken) =>
             {
                 try
                 {

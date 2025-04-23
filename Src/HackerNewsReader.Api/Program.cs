@@ -1,4 +1,5 @@
 using HackerNewsReader.Api.Extensions;
+using HackerNewsReader.Api.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,9 @@ builder.Services.AddMemoryCache();
 builder.Services.AddCustomConfiguration(builder.Configuration);
 
 var app = builder.Build();
+
+// Added custom middleware
+app.UseMiddleware<ExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

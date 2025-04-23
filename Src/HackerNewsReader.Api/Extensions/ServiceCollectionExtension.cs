@@ -1,4 +1,5 @@
-﻿using HackerNewsReader.Application.Interfaces;
+﻿using HackerNewsReader.Api.Middlewares;
+using HackerNewsReader.Application.Interfaces;
 using HackerNewsReader.Application.Services;
 using HackerNewsReader.Infrastructure.Services;
 
@@ -19,6 +20,7 @@ namespace HackerNewsReader.Api.Extensions
                 options.BaseAddress = new Uri(hackerNewsApiUrl);
             });
 
+            services.AddTransient<ExceptionMiddleware>();
             services.AddMemoryCache();
             services.AddTransient<IStoryService, StoryService>();
             return services;

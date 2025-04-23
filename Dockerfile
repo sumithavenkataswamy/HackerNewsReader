@@ -3,17 +3,17 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copy solution file and project files individually to leverage Docker caching
-COPY HackerNewsReader.sln .
-COPY HackerNewsReader.Api/HackerNewsReader.Api.csproj HackerNewsReader.Api/
-COPY HackerNewsReader.Application/HackerNewsReader.Application.csproj HackerNewsReader.Application/
-COPY HackerNewsReader.Domain/HackerNewsReader.Domain.csproj HackerNewsReader.Domain/
-COPY HackerNewsReader.Infrastructure/HackerNewsReader.Infrastructure.csproj HackerNewsReader.Infrastructure/
+COPY src/HackerNewsReader.sln .
+COPY src/HackerNewsReader.Api/HackerNewsReader.Api.csproj HackerNewsReader.Api/
+COPY src/HackerNewsReader.Application/HackerNewsReader.Application.csproj HackerNewsReader.Application/
+COPY src/HackerNewsReader.Domain/HackerNewsReader.Domain.csproj HackerNewsReader.Domain/
+COPY src/HackerNewsReader.Infrastructure/HackerNewsReader.Infrastructure.csproj HackerNewsReader.Infrastructure/
 
 # Restore dependencies
 RUN dotnet restore
 
 # Copy the rest of the source code
-COPY . .
+COPY src/ .
 
 # Publish the application
 RUN dotnet publish HackerNewsReader.Api/HackerNewsReader.Api.csproj -c Release -o /app/publish

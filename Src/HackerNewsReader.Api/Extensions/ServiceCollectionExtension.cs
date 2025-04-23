@@ -21,7 +21,6 @@ namespace HackerNewsReader.Api.Extensions
             });
 
             services.AddTransient<ExceptionMiddleware>();
-            services.AddMemoryCache();
             services.AddTransient<IStoryService, StoryService>();
             return services;
         }

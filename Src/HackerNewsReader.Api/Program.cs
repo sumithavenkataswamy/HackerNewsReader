@@ -12,6 +12,18 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddCustomConfiguration(builder.Configuration);
 
+builder.Services.AddMemoryCache();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigins", policy =>
+    {
+        policy.WithOrigins("*") 
+              .AllowAnyHeader()    
+              .AllowAnyMethod();
+    });
+});
+
+
 var app = builder.Build();
 
 // Added custom middleware
@@ -25,6 +37,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowSpecificOrigins");
 
 app.UseAuthorization();
 

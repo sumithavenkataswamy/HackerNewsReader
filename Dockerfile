@@ -13,7 +13,7 @@ COPY src/HackerNewsReader.Infrastructure/HackerNewsReader.Infrastructure.csproj 
 RUN dotnet restore
 
 # Copy the rest of the source code
-COPY src/ .
+COPY . .
 
 # Publish the application
 RUN dotnet publish HackerNewsReader.Api/HackerNewsReader.Api.csproj -c Release -o /app/publish

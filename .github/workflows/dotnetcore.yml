@@ -39,28 +39,28 @@ jobs:
           dotnet test Tests/HackerNewsReader.Api.Tests --collect:"XPlat Code Coverage" --results-directory TestResults/Api
           dotnet test Tests/HackerNewsReader.Infrastructure.Tests --collect:"XPlat Code Coverage" --results-directory TestResults/Infrastructure
 
-      # Step 6: Install ReportGenerator for code coverage
-      - name: Install ReportGenerator
-        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+    #   # Step 6: Install ReportGenerator for code coverage
+    #   - name: Install ReportGenerator
+    #     run: dotnet tool install -g dotnet-reportgenerator-globaltool
 
-      # Step 7: Generate code coverage report
-      - name: Generate Coverage Report
-        run: |
-          reportgenerator \
-            -reports:"TestResults/**/coverage.cobertura.xml" \
-            -targetdir:coverage \
-            -reporttypes:Html;MarkdownSummaryGithub
+    #   # Step 7: Generate code coverage report
+    #   - name: Generate Coverage Report
+    #     run: |
+    #       reportgenerator \
+    #         -reports:"TestResults/**/coverage.cobertura.xml" \
+    #         -targetdir:coverage \
+    #         -reporttypes:Html;MarkdownSummaryGithub
 
-    # Step 8: Show Markdown Summary in GitHub UI
-      - name: Publish Markdown Coverage Summary
-        run: cat coverage/Summary.md >> $GITHUB_STEP_SUMMARY
+    # # Step 8: Show Markdown Summary in GitHub UI
+    #   - name: Publish Markdown Coverage Summary
+    #     run: cat coverage/Summary.md >> $GITHUB_STEP_SUMMARY
 
-      # Step 9: Upload coverage report
-      - name: Upload Coverage Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-coverage
-          path: coverage
+    #   # Step 9: Upload coverage report
+    #   - name: Upload Coverage Report
+    #     uses: actions/upload-artifact@v4
+    #     with:
+    #       name: code-coverage
+    #       path: coverage
 
   build-and-publish:
     runs-on: ubuntu-latest

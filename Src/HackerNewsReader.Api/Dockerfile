@@ -1,31 +1,33 @@
-# Stage 1: Build the application
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
+# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
-# Copy solution file and project files individually to leverage Docker caching
-COPY HackerNewsReader.Api/HackerNewsReader.Api.csproj HackerNewsReader.Api/
-COPY HackerNewsReader.Application/HackerNewsReader.Application.csproj HackerNewsReader.Application/
-COPY HackerNewsReader.Domain/HackerNewsReader.Domain.csproj HackerNewsReader.Domain/
-COPY HackerNewsReader.Infrastructure/HackerNewsReader.Infrastructure.csproj HackerNewsReader.Infrastructure/
-
-# Restore dependencies
-RUN dotnet restore
-
-# Copy the rest of the source code
-COPY . .
-
-# Publish the application
-RUN dotnet publish HackerNewsReader.Api/HackerNewsReader.Api.csproj -c Release -o /app/publish
-
-# Stage 2: Create the runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+# This stage is used when running from VS in fast mode (Default for Debug configuration)
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+USER $APP_UID
 WORKDIR /app
+EXPOSE 8080
+EXPOSE 8081
 
-# Copy published files from the build stage
-COPY --from=build /app/publish .
 
-# Expose port 80 for the application
-EXPOSE 80
+# This stage is used to build the service project
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["Src/HackerNewsReader.Api/HackerNewsReader.Api.csproj", "Src/HackerNewsReader.Api/"]
+COPY ["Src/HackerNewsReader.Application/HackerNewsReader.Application.csproj", "Src/HackerNewsReader.Application/"]
+COPY ["Src/HackerNewsReader.Domain/HackerNewsReader.Domain.csproj", "Src/HackerNewsReader.Domain/"]
+COPY ["Src/HackerNewsReader.Infrastructure/HackerNewsReader.Infrastructure.csproj", "Src/HackerNewsReader.Infrastructure/"]
+RUN dotnet restore "./Src/HackerNewsReader.Api/HackerNewsReader.Api.csproj"
+COPY . .
+WORKDIR "/src/Src/HackerNewsReader.Api"
+RUN dotnet build "./HackerNewsReader.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# Define the entry point for the container
+# This stage is used to publish the service project to be copied to the final stage
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./HackerNewsReader.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "HackerNewsReader.Api.dll"]

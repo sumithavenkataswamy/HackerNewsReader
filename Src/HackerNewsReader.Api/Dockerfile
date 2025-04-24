@@ -12,10 +12,10 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Src/HackerNewsReader.Api/HackerNewsReader.Api.csproj", "Src/HackerNewsReader.Api/"]
-COPY ["Src/HackerNewsReader.Application/HackerNewsReader.Application.csproj", "Src/HackerNewsReader.Application/"]
-COPY ["Src/HackerNewsReader.Domain/HackerNewsReader.Domain.csproj", "Src/HackerNewsReader.Domain/"]
-COPY ["Src/HackerNewsReader.Infrastructure/HackerNewsReader.Infrastructure.csproj", "Src/HackerNewsReader.Infrastructure/"]
+COPY ["./Src/HackerNewsReader.Api/HackerNewsReader.Api.csproj", "Src/HackerNewsReader.Api/"]
+COPY ["./Src/HackerNewsReader.Application/HackerNewsReader.Application.csproj", "Src/HackerNewsReader.Application/"]
+COPY ["./Src/HackerNewsReader.Domain/HackerNewsReader.Domain.csproj", "Src/HackerNewsReader.Domain/"]
+COPY ["./Src/HackerNewsReader.Infrastructure/HackerNewsReader.Infrastructure.csproj", "Src/HackerNewsReader.Infrastructure/"]
 RUN dotnet restore "./Src/HackerNewsReader.Api/HackerNewsReader.Api.csproj"
 COPY . .
 WORKDIR "/src/Src/HackerNewsReader.Api"

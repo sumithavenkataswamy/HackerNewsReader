@@ -85,6 +85,7 @@ jobs:
         run: ls -la
 
       - name: Build Docker image
+        working-directory: ./Src/HackerNewsReader.Api
         run: |
           docker build \
           -t ghcr.io/${{ github.actor }}/hacker-news-reader-api:${{ env.BUILD_VERSION }} \

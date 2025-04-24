@@ -81,8 +81,10 @@ jobs:
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
+      - name: List directory contents
+        run: ls -la
+
       - name: Build Docker image
-        working-directory: HackerNewsReader/Src/HackerNewsReader.Api
         run: |
           docker build \
           -t ghcr.io/${{ github.actor }}/hacker-news-reader-api:${{ env.BUILD_VERSION }} \

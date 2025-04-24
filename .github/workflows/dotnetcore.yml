@@ -82,6 +82,7 @@ jobs:
         run: echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build Docker image
+        working-directory: HackerNewsReader/Src/HackerNewsReader.Api
         run: |
           docker build \
           -t ghcr.io/${{ github.actor }}/hacker-news-reader-api:${{ env.BUILD_VERSION }} \

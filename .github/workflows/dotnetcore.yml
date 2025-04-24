@@ -84,6 +84,12 @@ jobs:
       - name: List directory contents
         run: ls -la
 
+      - name: List directory contents
+        run: ls -la ./Src
+
+      - name: List directory contents
+        run: ls -la ./Src/HackerNewsReader.Infrastructure/
+
       - name: Build Docker image
         working-directory: ./Src/HackerNewsReader.Api
         run: |

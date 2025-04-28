@@ -48,7 +48,7 @@ namespace HackerNewsReader.Api.Tests
         }
 
         [Fact]
-        public async Task GetStories_ShouldReturnNotFound_WhenNoStoriesExist()
+        public async Task GetStories_ShouldReturnEmptyResult_WhenNoStoriesExist()
         {
             // Arrange
             var pagedResult = new PagedResult<StoryDto>
@@ -64,9 +64,8 @@ namespace HackerNewsReader.Api.Tests
             var result = await _controller.GetStories(1, 2);
 
             // Assert
-            var notFoundResult = result as NotFoundObjectResult;
-            notFoundResult.ShouldNotBeNull();
-            notFoundResult.Value.ShouldBe("No stories found.");
+            var okResult = result as OkObjectResult;
+            okResult.ShouldNotBeNull();
         }
 
         [Fact]
@@ -96,6 +95,37 @@ namespace HackerNewsReader.Api.Tests
             response.Items.Count.ShouldBe(1);
             response.TotalCount.ShouldBe(1);
             response.Items.First().Title.ShouldContain("Searched");
+        }
+
+        [Fact]
+        public async Task GetStories_ShouldReturnBadRequest_WhenArgumentExceptionIsThrown()
+        {
+            // Arrange
+            _storyServiceMock.Setup(s => s.GetPagedStoriesAsync(1, 2, null))
+                             .ThrowsAsync(new ArgumentException("Invalid parameters."));
+
+            // Act
+            var result = await _controller.GetStories(1, 2);
+
+            // Assert
+            var badRequestResult = result as BadRequestObjectResult;
+            badRequestResult.ShouldNotBeNull();
+        }
+
+        [Fact]
+        public async Task GetStories_ShouldReturnInternalServerError_WhenExceptionIsThrown()
+        {
+            // Arrange
+            _storyServiceMock.Setup(s => s.GetPagedStoriesAsync(1, 2, null))
+                             .ThrowsAsync(new Exception("Unexpected error"));
+
+            // Act
+            var result = await _controller.GetStories(1, 2);
+
+            // Assert
+            var internalServerErrorResult = result as ObjectResult;
+            internalServerErrorResult.ShouldNotBeNull();
+            internalServerErrorResult.StatusCode.ShouldBe(500);
         }
     }
 }

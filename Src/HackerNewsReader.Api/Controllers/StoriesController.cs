@@ -1,4 +1,7 @@
-﻿using HackerNewsReader.Application.Interfaces;
+﻿using System.Net;
+using HackerNewsReader.Application.Interfaces;
+using HackerNewsReader.Application.Models;
+using HackerNewsReader.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HackerNewsReader.Api.Controllers
@@ -24,14 +27,30 @@ namespace HackerNewsReader.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetStories([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? query = null)
         {
-            var pagedStories = await _storyService.GetPagedStoriesAsync(page, pageSize, query);
-
-            if (pagedStories == null || !pagedStories.Items.Any())
+            try
             {
-                return NotFound("No stories found.");
-            }
+                var pagedStories = await _storyService.GetPagedStoriesAsync(page, pageSize, query);
 
-            return Ok(pagedStories);
+                if (pagedStories == null || !pagedStories.Items.Any())
+                {
+                    var emptyResult = new PagedResult<Story>
+                    {
+                        Items = new List<Story>(),
+                        TotalCount = 0
+                    };
+                    return Ok(emptyResult);
+                }
+
+                return Ok(pagedStories);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode((int)HttpStatusCode.InternalServerError, new { Message = "An unexpected error occurred. Please try again later." });
+            }
         }
     }
 }

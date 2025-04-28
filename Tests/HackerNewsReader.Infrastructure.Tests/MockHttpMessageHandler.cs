@@ -1,18 +1,21 @@
-﻿namespace HackerNewsReader.Infrastructure.Tests
+﻿public class MockHttpMessageHandler : HttpMessageHandler
 {
-    public class MockHttpMessageHandler : HttpMessageHandler
+    private readonly Func<HttpRequestMessage, Task<HttpResponseMessage>> _sendAsync;
+
+    public MockHttpMessageHandler(Func<HttpRequestMessage, Task<HttpResponseMessage>> sendAsync)
     {
-        private readonly Func<HttpRequestMessage, Task<HttpResponseMessage>> _sendAsync;
+        _sendAsync = sendAsync ?? throw new ArgumentNullException(nameof(sendAsync));
+    }
 
-        public MockHttpMessageHandler(Func<HttpRequestMessage, Task<HttpResponseMessage>> sendAsync)
-        {
-            _sendAsync = sendAsync;
-        }
-
-        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        try
         {
             return _sendAsync(request);
         }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Error in MockHttpMessageHandler.", ex);
+        }
     }
-
 }

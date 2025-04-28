@@ -3,6 +3,7 @@ using HackerNewsReader.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace HackerNewsReader.Infrastructure.Tests
 {
@@ -57,7 +58,7 @@ namespace HackerNewsReader.Infrastructure.Tests
         }
 
         [Fact]
-        public async Task GetNewStoryIdsAsync_ShouldLogError_WhenApiThrowsException()
+        public async Task GetNewStoryIdsAsync_ShouldLogError_WhenApiThrowsHttpRequestException()
         {
             // Arrange
             var mockHttpMessageHandler = new MockHttpMessageHandler(request =>
@@ -79,12 +80,11 @@ namespace HackerNewsReader.Infrastructure.Tests
             _loggerMock.Verify(logger => logger.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Error fetching new story IDs.")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("HTTP error occurred while fetching new story IDs")),
                 It.IsAny<Exception>(),
                 (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
                 Times.Once);
         }
-
 
         [Fact]
         public async Task GetStoryByIdAsync_ShouldReturnStory_WhenApiResponseIsSuccessful()
@@ -144,7 +144,7 @@ namespace HackerNewsReader.Infrastructure.Tests
         }
 
         [Fact]
-        public async Task GetStoryByIdAsync_ShouldLogError_WhenApiThrowsException()
+        public async Task GetStoryByIdAsync_ShouldLogError_WhenApiThrowsHttpRequestException()
         {
             // Arrange
             var mockHttpMessageHandler = new MockHttpMessageHandler(request =>
@@ -166,11 +166,53 @@ namespace HackerNewsReader.Infrastructure.Tests
             _loggerMock.Verify(logger => logger.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("Error fetching story with ID 1")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("HTTP error occurred while fetching story with ID 1")),
                 It.IsAny<Exception>(),
                 (Func<It.IsAnyType, Exception, string>)It.IsAny<object>()),
                 Times.Once);
         }
 
+        [Fact]
+        public async Task GetNewStoryIdsAsync_ShouldReturnEmptyList_WhenApiResponseIsEmpty()
+        {
+            // Arrange
+            var mockHttpMessageHandler = new MockHttpMessageHandler(request =>
+            {
+                return Task.FromResult(new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = JsonContent.Create(new List<int>())
+                });
+            });
+
+            _httpClient = new HttpClient(mockHttpMessageHandler)
+            {
+                BaseAddress = new Uri("https://hacker-news.firebaseio.com/v0/")
+            };
+
+            _service = new HackerNewsReaderService(_httpClient, _loggerMock.Object);
+
+            // Act
+            var result = await _service.GetNewStoryIdsAsync();
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+    }
+
+    public class MockHttpMessageHandler : HttpMessageHandler
+    {
+        private readonly Func<HttpRequestMessage, Task<HttpResponseMessage>> _sendAsync;
+
+        public MockHttpMessageHandler(Func<HttpRequestMessage, Task<HttpResponseMessage>> sendAsync)
+        {
+            _sendAsync = sendAsync;
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            return _sendAsync(request);
+        }
     }
 }

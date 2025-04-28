@@ -1,10 +1,8 @@
-﻿using HackerNewsReader.Domain.Entities;
-
+﻿using HackerNewsReader.Application.Models;
 namespace HackerNewsReader.Application.Interfaces
 {
     public interface IStoryService
     {
-        Task<PagedResult<Story>> GetStoriesAsync(int page, int pageSize);
-        Task<List<Story>> SearchStoriesAsync(string query);
+        Task<PagedResult<StoryDto>> GetPagedStoriesAsync(int page, int pageSize, string? query = null);
     }
 }

@@ -1,6 +1,6 @@
 using HackerNewsReader.Api.Controllers;
 using HackerNewsReader.Application.Interfaces;
-using HackerNewsReader.Domain.Entities;
+using HackerNewsReader.Application.Models;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Shouldly;
@@ -19,20 +19,20 @@ namespace HackerNewsReader.Api.Tests
         }
 
         [Fact]
-        public async Task GetStories_ShouldReturnPagedStories_WhenCalled()
+        public async Task GetStories_ShouldReturnPagedStories_WhenStoriesExist()
         {
             // Arrange
-            var pagedResult = new PagedResult<Story>
+            var pagedResult = new PagedResult<StoryDto>
             {
-                Items = new List<Story>
-            {
-                new Story { Title = "Story 1", Url = "http://example.com/story1" },
-                new Story { Title = "Story 2", Url = "http://example.com/story2" }
-            },
+                Items = new List<StoryDto>
+                {
+                    new StoryDto { Title = "Story 1", Url = "http://example.com/story1" },
+                    new StoryDto { Title = "Story 2", Url = "http://example.com/story2" }
+                },
                 TotalCount = 2
             };
 
-            _storyServiceMock.Setup(s => s.GetStoriesAsync(1, 2))
+            _storyServiceMock.Setup(s => s.GetPagedStoriesAsync(1, 2, null))
                              .ReturnsAsync(pagedResult);
 
             // Act
@@ -41,32 +41,61 @@ namespace HackerNewsReader.Api.Tests
             // Assert
             var okResult = result as OkObjectResult;
             okResult.ShouldNotBeNull();
-            var response = okResult.Value as PagedResult<Story>;
+            var response = okResult.Value as PagedResult<StoryDto>;
             response.ShouldNotBeNull();
-            response.Items.Count().ShouldBeEquivalentTo(2);
+            response.Items.Count.ShouldBe(2);
+            response.TotalCount.ShouldBe(2);
         }
 
         [Fact]
-        public async Task SearchStories_ShouldReturnFilteredStories_WhenCalled()
+        public async Task GetStories_ShouldReturnNotFound_WhenNoStoriesExist()
         {
             // Arrange
-            var stories = new List<Story>
-        {
-            new Story { Title = "Story 1", Url = "http://example.com/story1" }
-        };
+            var pagedResult = new PagedResult<StoryDto>
+            {
+                Items = new List<StoryDto>(),
+                TotalCount = 0
+            };
 
-            _storyServiceMock.Setup(s => s.SearchStoriesAsync("Story 1"))
-                             .ReturnsAsync(stories);
+            _storyServiceMock.Setup(s => s.GetPagedStoriesAsync(1, 2, null))
+                             .ReturnsAsync(pagedResult);
 
             // Act
-            var result = await _controller.SearchStories("Story 1");
+            var result = await _controller.GetStories(1, 2);
+
+            // Assert
+            var notFoundResult = result as NotFoundObjectResult;
+            notFoundResult.ShouldNotBeNull();
+            notFoundResult.Value.ShouldBe("No stories found.");
+        }
+
+        [Fact]
+        public async Task GetStories_ShouldReturnPagedStories_WhenSearchQueryIsProvided()
+        {
+            // Arrange
+            var pagedResult = new PagedResult<StoryDto>
+            {
+                Items = new List<StoryDto>
+                {
+                    new StoryDto { Title = "Searched Story", Url = "http://example.com/story" }
+                },
+                TotalCount = 1
+            };
+
+            _storyServiceMock.Setup(s => s.GetPagedStoriesAsync(1, 10, "search"))
+                             .ReturnsAsync(pagedResult);
+
+            // Act
+            var result = await _controller.GetStories(1, 10, "search");
 
             // Assert
             var okResult = result as OkObjectResult;
             okResult.ShouldNotBeNull();
-            var response = okResult.Value as List<Story>;
+            var response = okResult.Value as PagedResult<StoryDto>;
             response.ShouldNotBeNull();
-            response.Count().ShouldBeEquivalentTo(1);
+            response.Items.Count.ShouldBe(1);
+            response.TotalCount.ShouldBe(1);
+            response.Items.First().Title.ShouldContain("Searched");
         }
     }
 }

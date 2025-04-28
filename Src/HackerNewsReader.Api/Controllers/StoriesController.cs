@@ -14,18 +14,24 @@ namespace HackerNewsReader.Api.Controllers
             _storyService = storyService;
         }
 
+        /// <summary>
+        /// Get paged stories with optional search query.
+        /// </summary>
+        /// <param name="page">Page number (default is 1).</param>
+        /// <param name="pageSize">Page size (default is 10).</param>
+        /// <param name="query">Optional search keyword.</param>
+        /// <returns>Paged list of stories.</returns>
         [HttpGet]
-        public async Task<IActionResult> GetStories([FromQuery] int page = 1, [FromQuery] int pageSize = 200)
+        public async Task<IActionResult> GetStories([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? query = null)
         {
-            var stories = await _storyService.GetStoriesAsync(page, pageSize);
-            return Ok(stories);
-        }
+            var pagedStories = await _storyService.GetPagedStoriesAsync(page, pageSize, query);
 
-        [HttpGet("search")]
-        public async Task<IActionResult> SearchStories([FromQuery] string query)
-        {
-            var result = await _storyService.SearchStoriesAsync(query);
-            return Ok(result);
+            if (pagedStories == null || !pagedStories.Items.Any())
+            {
+                return NotFound("No stories found.");
+            }
+
+            return Ok(pagedStories);
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace HackerNewsReader.Domain.Entities
+﻿namespace HackerNewsReader.Application.Models
 {
     public class PagedResult<T>
     {

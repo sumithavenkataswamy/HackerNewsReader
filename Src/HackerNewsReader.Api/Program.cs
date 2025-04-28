@@ -1,5 +1,7 @@
 using HackerNewsReader.Api.Extensions;
 using HackerNewsReader.Api.Middlewares;
+using HackerNewsReader.Application.AutoMappers;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +11,9 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
+builder.Services.AddAutoMapper(typeof(StoryProfile));
+
+//builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
 builder.Services.AddCustomConfiguration(builder.Configuration);
 
